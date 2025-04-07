@@ -8,11 +8,11 @@ app.use(
   "*",
   cors({
     origin: "https://portal.gscwd.app",
-    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
-    exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
+    exposeHeaders: ["Content-Length", "X-Kuma-Revision", "Set-Cookie"],
     maxAge: 600,
-    credentials: true,
+    credentials: true, // This is important for cookies to work
   })
 );
 
@@ -33,11 +33,25 @@ app.all("*", async (c) => {
   });
 
   // Return the response from your origin
-  return new Response(response.body, {
+  // Create a new response to ensure headers are properly handled
+  const newResponse = new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers: response.headers,
   });
+
+  // Ensure Set-Cookie headers are preserved
+  const cookies = response.headers.getAll("Set-Cookie");
+  if (cookies.length > 0) {
+    // Remove any existing Set-Cookie headers from the new response
+    newResponse.headers.delete("Set-Cookie");
+    // Add each cookie individually
+    cookies.forEach((cookie) => {
+      newResponse.headers.append("Set-Cookie", cookie);
+    });
+  }
+
+  return newResponse;
 });
 
 export default app;
