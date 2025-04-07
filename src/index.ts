@@ -1,57 +1,64 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 
 const app = new Hono();
 
-// Add CORS middleware
-app.use(
-  "*",
-  cors({
-    origin: "https://portal.gscwd.app",
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
-    exposeHeaders: ["Content-Length", "X-Kuma-Revision", "Set-Cookie"],
-    maxAge: 600,
-    credentials: true, // This is important for cookies to work
-  })
-);
+// Custom CORS handling to ensure cookies work properly
+app.use("*", async (c, next) => {
+  // Handle preflight OPTIONS requests
+  if (c.req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "https://portal.gscwd.app",
+        "Access-Control-Allow-Methods":
+          "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, Cookie, X-Requested-With",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
+  // For actual requests, process and add headers after receiving the response
+  await next();
+
+  // Now we have access to the response
+  c.res.headers.set("Access-Control-Allow-Origin", "https://portal.gscwd.app");
+  c.res.headers.set("Access-Control-Allow-Credentials", "true");
+  c.res.headers.append("Access-Control-Expose-Headers", "Set-Cookie");
+});
 
 // Handle all requests by proxying to original backend
 app.all("*", async (c) => {
   const url = new URL(c.req.url);
 
   // Forward the request to your origin server
-  // Make sure to replace this with your actual origin address if different
   const originUrl = `https://api-portal.gscwd.app${url.pathname}${url.search}`;
 
+  const requestHeaders = new Headers(c.req.raw.headers);
+
+  // Make sure to include cookies in the request to the origin
+  // Cloudflare Workers automatically forward cookies without needing credentials option
   const response = await fetch(originUrl, {
     method: c.req.method,
-    headers: c.req.raw.headers,
+    headers: requestHeaders,
     body: ["GET", "HEAD"].includes(c.req.method)
       ? undefined
       : await c.req.arrayBuffer(),
   });
 
-  // Return the response from your origin
-  // Create a new response to ensure headers are properly handled
-  const newResponse = new Response(response.body, {
+  console.log({ originalResponse: response });
+
+  // Create a response that keeps all original headers
+  // We're avoiding the Hono response abstraction to maintain all headers exactly as they are
+  const responseHeaders = new Headers(response.headers);
+
+  // Return a raw Response to preserve all headers including Set-Cookie
+  return new Response(response.body, {
     status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
+    headers: responseHeaders,
   });
-
-  // Ensure Set-Cookie headers are preserved
-  const cookies = response.headers.getAll("Set-Cookie");
-  if (cookies.length > 0) {
-    // Remove any existing Set-Cookie headers from the new response
-    newResponse.headers.delete("Set-Cookie");
-    // Add each cookie individually
-    cookies.forEach((cookie) => {
-      newResponse.headers.append("Set-Cookie", cookie);
-    });
-  }
-
-  return newResponse;
 });
 
 export default app;
