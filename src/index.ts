@@ -48,7 +48,7 @@ app.all("*", async (c) => {
       : await c.req.arrayBuffer(),
   });
 
-  console.log({ originalResponse: response });
+  // console.log({ originalResponse: response });
 
   // Create a response that keeps all original headers
   // We're avoiding the Hono response abstraction to maintain all headers exactly as they are
