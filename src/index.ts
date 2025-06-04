@@ -39,7 +39,11 @@ const app = new Hono();
 
 app.use(
   cors({
-    origin: ["https://portal.gscwd.app", "http://localhost:3000"],
+    origin: [
+      "https://portal.gscwd.app",
+      "https://pds.gscwd.app",
+      "http://localhost:3000",
+    ],
     allowMethods: ["POST", "GET", "OPTIONS", "POST", "DELETE", "PUT", "PATCH"],
     allowHeaders: [
       "Content-Type",
