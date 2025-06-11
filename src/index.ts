@@ -1,47 +1,13 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-const allowedOrigins = [
-  "https://portal.gscwd.app",
-  "http://localhost:3000",
-  // Add more origins as needed
-];
-
 const app = new Hono();
-
-// Custom CORS handling to ensure cookies work properly
-// app.use("*", async (c, next) => {
-//   // Handle preflight OPTIONS requests
-//   if (c.req.method === "OPTIONS") {
-//     return new Response(null, {
-//       status: 204,
-//       headers: {
-//         "Access-Control-Allow-Origin":
-//           "https://portal.gscwd.app, http://localhost:3000",
-//         "Access-Control-Allow-Methods":
-//           "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-//         "Access-Control-Allow-Headers":
-//           "Content-Type, Authorization, Cookie, X-Requested-With",
-//         "Access-Control-Allow-Credentials": "true",
-//         "Access-Control-Max-Age": "86400",
-//       },
-//     });
-//   }
-
-//   // For actual requests, process and add headers after receiving the response
-//   await next();
-
-//   // Now we have access to the response
-//   c.res.headers.set("Access-Control-Allow-Origin", "https://portal.gscwd.app");
-//   c.res.headers.set("Access-Control-Allow-Credentials", "true");
-//   c.res.headers.append("Access-Control-Expose-Headers", "Set-Cookie");
-// });
 
 app.use(
   cors({
     origin: [
       "https://portal.gscwd.app",
-      "https://pds.gscwd.app",
+      "https://emp.gscwd.app",
       "http://localhost:3000",
     ],
     allowMethods: ["POST", "GET", "OPTIONS", "POST", "DELETE", "PUT", "PATCH"],
