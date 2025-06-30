@@ -10,6 +10,7 @@ app.use(
       "http://pds.gscwd.app",
       "https://emp.gscwd.app",
       "http://localhost:3000",
+      "https://api-portal.gscwd.app",
     ],
     allowMethods: ["POST", "GET", "OPTIONS", "POST", "DELETE", "PUT", "PATCH"],
     allowHeaders: [
