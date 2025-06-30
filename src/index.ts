@@ -7,6 +7,7 @@ app.use(
   cors({
     origin: [
       "https://portal.gscwd.app",
+      "http://pds.gscwd.app",
       "https://emp.gscwd.app",
       "http://localhost:3000",
     ],
