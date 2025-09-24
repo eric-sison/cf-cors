@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "cf-cors",
+  "name": "cors",
   "main": "src/index.ts",
   "compatibility_date": "2025-04-07",
   "observability": {
